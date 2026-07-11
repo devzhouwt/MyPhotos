@@ -1,0 +1,17 @@
+{
+  "name": "云相册",
+  "short_name": "云相册",
+  "description": "私人云相册 - 数据完全由你掌控",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

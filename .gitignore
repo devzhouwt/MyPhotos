@@ -10,3 +10,21 @@ __pycache__/
 
 # Personal notes
 docs/notes/
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Qoder AI tools config
+.qoder/
+
+# Generated reports
+ui-analysis-report.md
+
+# AI agent instructions (dev-only)
+AGENTS.md
+
+# IDE
+*.tsbuildinfo
