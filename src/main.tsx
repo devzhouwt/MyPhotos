@@ -4,10 +4,13 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
 
+// GitHub Pages 部署在仓库名子路径下，需指定 basename
+const BASENAME = '/MyPhotos'
+
 // 注册 Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
+    navigator.serviceWorker.register(`${BASENAME}/sw.js`).catch(() => {
       // Service Worker 注册失败不影响应用运行
     })
   })
@@ -23,7 +26,7 @@ if ('serviceWorker' in navigator) {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={BASENAME}>
       <App />
     </BrowserRouter>
   </React.StrictMode>,

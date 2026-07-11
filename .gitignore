@@ -8,8 +8,10 @@ __pycache__/
 # Review push runs
 .review-push/
 
-# Personal notes
+# Personal notes & diagnostic artifacts
 docs/notes/
+docs/screenshot-*
+assets_dir.png
 
 # Dependencies
 node_modules/
