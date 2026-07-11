@@ -4,8 +4,8 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
 
-// GitHub Pages 部署在仓库名子路径下，需指定 basename
-const BASENAME = '/MyPhotos'
+// GitHub Pages 部署在仓库名子路径下，需指定 basename；本地开发无需前缀
+const BASENAME = import.meta.env.DEV ? '/' : '/MyPhotos'
 
 // 注册 Service Worker
 if ('serviceWorker' in navigator) {

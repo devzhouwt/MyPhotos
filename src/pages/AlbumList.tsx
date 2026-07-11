@@ -49,6 +49,18 @@ export default function AlbumList() {
   const [renameError, setRenameError] = useState('')
   const [batchProgress, setBatchProgress] = useState<BatchProgress | null>(null)
 
+  // 长按相册弹出操作菜单（手机端）
+  const [longPressAlbum, setLongPressAlbum] = useState<Album | null>(null)
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isLongPressRef = useRef(false)
+
+  // 组件卸载时清除长按计时器
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
+    }
+  }, [])
+
   // 检测设置页同步状态（通过 sessionStorage 跨页面通信）
   const [isSyncing, setIsSyncing] = useState(() => sessionStorage.getItem('myphotos_syncing') === 'true')
   useEffect(() => {
@@ -525,7 +537,32 @@ export default function AlbumList() {
             <div
               key={album.dirName}
               className="card overflow-hidden group cursor-pointer"
-              onClick={() => navigate(`/album/${encodeURIComponent(album.dirName)}`)}
+              onClick={(e) => {
+                if (isLongPressRef.current) {
+                  isLongPressRef.current = false
+                  return
+                }
+                navigate(`/album/${encodeURIComponent(album.dirName)}`)
+              }}
+              onTouchStart={() => {
+                isLongPressRef.current = false
+                longPressTimerRef.current = setTimeout(() => {
+                  isLongPressRef.current = true
+                  setLongPressAlbum(album)
+                }, 500)
+              }}
+              onTouchEnd={() => {
+                if (longPressTimerRef.current) {
+                  clearTimeout(longPressTimerRef.current)
+                  longPressTimerRef.current = null
+                }
+              }}
+              onTouchMove={() => {
+                if (longPressTimerRef.current) {
+                  clearTimeout(longPressTimerRef.current)
+                  longPressTimerRef.current = null
+                }
+              }}
             >
               {/* 封面区域 */}
               <div className="aspect-[4/3] bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center relative">
@@ -675,6 +712,42 @@ export default function AlbumList() {
               </button>
               <button onClick={handleRename} className="btn btn-primary">
                 确认
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 长按相册弹出操作菜单（手机端） */}
+      {longPressAlbum && (
+        <div className="modal-overlay" onClick={() => setLongPressAlbum(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-bold text-slate-800 truncate pr-4">{longPressAlbum.name}</h2>
+              <button
+                onClick={() => setLongPressAlbum(null)}
+                className="btn btn-ghost btn-icon shrink-0"
+              >
+                <IconX size={16} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => { setLongPressAlbum(null); openRenameModal(longPressAlbum) }}
+                disabled={isLocked}
+                className="btn btn-secondary justify-start px-4 py-2.5 text-[14px]"
+              >
+                <IconPencil size={15} />
+                重命名
+              </button>
+              <button
+                onClick={() => { setLongPressAlbum(null); handleDelete(longPressAlbum) }}
+                disabled={isLocked}
+                className="btn justify-start px-4 py-2.5 text-[14px]"
+                style={{ background: 'var(--color-danger-light)', color: 'var(--color-danger)' }}
+              >
+                <IconTrash size={15} />
+                删除相册
               </button>
             </div>
           </div>
