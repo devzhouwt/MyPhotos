@@ -143,12 +143,15 @@ export default function AlbumDetail() {
   // 灯箱相关
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxImageUrl, setLightboxImageUrl] = useState<string>('')
+  const [lightboxLoading, setLightboxLoading] = useState(false)
 
   // 加载灯箱图片URL
   useEffect(() => {
     if (lightboxIndex !== null && files[lightboxIndex]) {
       const file = files[lightboxIndex]
       if (!isVideoByName(file.name)) {
+        // 打开时立即显示 loading
+        setLightboxLoading(true)
         // 对于图片，使用getImageBlobUrl确保加载
         getImageBlobUrl(file.path)
           .then(url => setLightboxImageUrl(url))
@@ -157,7 +160,8 @@ export default function AlbumDetail() {
             setLightboxImageUrl(getRawUrl(file.path))
           })
       } else {
-        // 对于视频，使用raw URL
+        // 对于视频，使用raw URL，不需要 loading 动画
+        setLightboxLoading(false)
         setLightboxImageUrl(getRawUrl(file.path))
       }
     }
@@ -829,10 +833,31 @@ export default function AlbumDetail() {
   }
 
   // 灯箱
-  const openLightbox = (index: number) => setLightboxIndex(index)
-  const closeLightbox = () => setLightboxIndex(null)
-  const lightboxPrev = () => { if (lightboxIndex !== null && lightboxIndex > 0) setLightboxIndex(lightboxIndex - 1) }
-  const lightboxNext = () => { if (lightboxIndex !== null && lightboxIndex < files.length - 1) setLightboxIndex(lightboxIndex + 1) }
+  const openLightbox = (index: number) => {
+    // 同步重置，避免首帧露出旧 URL / 破损图标
+    setLightboxImageUrl('')
+    setLightboxLoading(true)
+    setLightboxIndex(index)
+  }
+  const closeLightbox = () => {
+    setLightboxIndex(null)
+    setLightboxImageUrl('')
+    setLightboxLoading(false)
+  }
+  const lightboxPrev = () => {
+    if (lightboxIndex !== null && lightboxIndex > 0) {
+      setLightboxImageUrl('')
+      setLightboxLoading(true)
+      setLightboxIndex(lightboxIndex - 1)
+    }
+  }
+  const lightboxNext = () => {
+    if (lightboxIndex !== null && lightboxIndex < files.length - 1) {
+      setLightboxImageUrl('')
+      setLightboxLoading(true)
+      setLightboxIndex(lightboxIndex + 1)
+    }
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1253,11 +1278,27 @@ export default function AlbumDetail() {
                 className="max-w-full max-h-full"
               />
             ) : (
-              <img
-                src={lightboxImageUrl}
-                alt={files[lightboxIndex].name}
-                className="max-w-full max-h-full object-contain"
-              />
+              <>
+                {/* 加载动画：loading 中或 URL 未就绪时都显示 */}
+                {(lightboxLoading || !lightboxImageUrl) && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-20">
+                    <div className="w-10 h-10 border-[3px] border-white/20 border-t-white/80 rounded-full animate-spin" />
+                    <span className="text-sm text-white/60">加载中...</span>
+                  </div>
+                )}
+                {/* URL 未就绪时不渲染 img，避免浏览器破损图标 */}
+                {lightboxImageUrl && (
+                  <img
+                    src={lightboxImageUrl}
+                    alt=""
+                    className={`max-w-full max-h-full object-contain transition-opacity duration-300 ${
+                      lightboxLoading ? 'opacity-0' : 'opacity-100'
+                    }`}
+                    onLoad={() => setLightboxLoading(false)}
+                    onError={() => setLightboxLoading(false)}
+                  />
+                )}
+              </>
             )}
 
             {lightboxIndex < files.length - 1 && (
